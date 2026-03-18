@@ -1,0 +1,762 @@
+openapi: 3.0.3
+info:
+  title: Catalog Service API
+  description: |
+    Manages the RUBY MUSIC catalog: genres (stations), artists, albums and songs.
+    All write operations require admin privileges (enforced at gateway level).
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8082
+    description: Local development
+  - url: http://localhost:8080/api/v1/catalog
+    description: Via API Gateway
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Genres
+  - name: Artists
+  - name: Albums
+  - name: Songs
+
+paths:
+
+  # ── Genres ──────────────────────────────────────────────────────────────────
+
+  /api/v1/catalog/genres:
+    get:
+      tags: [Genres]
+      operationId: listGenres
+      summary: List all genres / stations
+      responses:
+        '200':
+          description: List of genres
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GenreResponse'
+    post:
+      tags: [Genres]
+      operationId: createGenre
+      summary: Create a genre (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenreRequest'
+      responses:
+        '201':
+          description: Genre created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenreResponse'
+        '409':
+          description: Genre name already exists
+
+  /api/v1/catalog/genres/{id}:
+    get:
+      tags: [Genres]
+      operationId: getGenreById
+      summary: Get genre by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Genre found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenreResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Genres]
+      operationId: updateGenre
+      summary: Update genre (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenreRequest'
+      responses:
+        '200':
+          description: Genre updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenreResponse'
+    delete:
+      tags: [Genres]
+      operationId: deleteGenre
+      summary: Delete genre (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Deleted
+
+  # ── Artists ──────────────────────────────────────────────────────────────────
+
+  /api/v1/catalog/artists:
+    get:
+      tags: [Artists]
+      operationId: listArtists
+      summary: List artists (paginated)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of artists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtistPage'
+    post:
+      tags: [Artists]
+      operationId: createArtist
+      summary: Create artist (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistRequest'
+      responses:
+        '201':
+          description: Artist created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtistResponse'
+
+  /api/v1/catalog/artists/top:
+    get:
+      tags: [Artists]
+      operationId: getTopArtists
+      summary: Get top artists (for onboarding and home sections)
+      responses:
+        '200':
+          description: List of top artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArtistResponse'
+
+  /api/v1/catalog/artists/search:
+    get:
+      tags: [Artists]
+      operationId: searchArtists
+      summary: Search artists by name
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtistPage'
+
+  /api/v1/catalog/artists/{id}:
+    get:
+      tags: [Artists]
+      operationId: getArtistById
+      summary: Get artist by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Artist found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtistResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Artists]
+      operationId: updateArtist
+      summary: Update artist (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ArtistRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtistResponse'
+    delete:
+      tags: [Artists]
+      operationId: deleteArtist
+      summary: Delete artist (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Deleted
+
+  /api/v1/catalog/artists/{id}/albums:
+    get:
+      tags: [Artists]
+      operationId: getArtistAlbums
+      summary: Albums by artist
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of albums
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumPage'
+
+  /api/v1/catalog/artists/{id}/songs:
+    get:
+      tags: [Artists]
+      operationId: getArtistSongs
+      summary: Songs by artist (top songs)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of songs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
+
+  # ── Albums ───────────────────────────────────────────────────────────────────
+
+  /api/v1/catalog/albums:
+    get:
+      tags: [Albums]
+      operationId: listAlbums
+      summary: List albums (paginated)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of albums
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumPage'
+    post:
+      tags: [Albums]
+      operationId: createAlbum
+      summary: Create album (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlbumRequest'
+      responses:
+        '201':
+          description: Album created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumResponse'
+
+  /api/v1/catalog/albums/new-releases:
+    get:
+      tags: [Albums]
+      operationId: getNewReleases
+      summary: New releases ordered by release date
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of albums
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumPage'
+
+  /api/v1/catalog/albums/top:
+    get:
+      tags: [Albums]
+      operationId: getTopAlbums
+      summary: Top albums by total streams
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of albums
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumPage'
+
+  /api/v1/catalog/albums/{id}:
+    get:
+      tags: [Albums]
+      operationId: getAlbumById
+      summary: Get album by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Album found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Albums]
+      operationId: updateAlbum
+      summary: Update album (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AlbumRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumResponse'
+    delete:
+      tags: [Albums]
+      operationId: deleteAlbum
+      summary: Delete album (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Deleted
+
+  /api/v1/catalog/albums/{id}/songs:
+    get:
+      tags: [Albums]
+      operationId: getAlbumSongs
+      summary: Songs in an album
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of songs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
+
+  # ── Songs ────────────────────────────────────────────────────────────────────
+
+  /api/v1/catalog/songs/search:
+    get:
+      tags: [Songs]
+      operationId: searchSongs
+      summary: Search songs by title or artist name
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
+
+  /api/v1/catalog/songs/{id}:
+    get:
+      tags: [Songs]
+      operationId: getSongById
+      summary: Get song by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Song found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Songs]
+      operationId: updateSong
+      summary: Update song (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SongUpdateRequest'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongResponse'
+    delete:
+      tags: [Songs]
+      operationId: deleteSong
+      summary: Delete song (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Deleted
+
+  /api/v1/catalog/songs:
+    post:
+      tags: [Songs]
+      operationId: createSong
+      summary: Create song (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SongCreateRequest'
+      responses:
+        '201':
+          description: Song created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongResponse'
+
+  /api/v1/catalog/genres/{id}/songs:
+    get:
+      tags: [Genres, Songs]
+      operationId: getSongsByGenre
+      summary: Songs in a genre / station (paginated)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of songs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
+
+# ── Components ────────────────────────────────────────────────────────────────
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    IdParam:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PageParam:
+      name: page
+      in: query
+      schema:
+        type: integer
+        default: 0
+    SizeParam:
+      name: size
+      in: query
+      schema:
+        type: integer
+        default: 20
+
+  schemas:
+
+    GenreRequest:
+      type: object
+      required: [name, gradientStart, gradientEnd]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        gradientStart:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        gradientEnd:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+
+    GenreResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        gradientStart:
+          type: string
+        gradientEnd:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ArtistRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        photoUrl:
+          type: string
+          format: uri
+        bio:
+          type: string
+        isTop:
+          type: boolean
+
+    ArtistResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        photoUrl:
+          type: string
+        bio:
+          type: string
+        monthlyListeners:
+          type: integer
+          format: int64
+        followersCount:
+          type: integer
+          format: int64
+        isTop:
+          type: boolean
+
+    ArtistPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArtistResponse'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    AlbumRequest:
+      type: object
+      required: [title, artistId, coverUrl, releaseDate]
+      properties:
+        title:
+          type: string
+        artistId:
+          type: string
+          format: uuid
+        coverUrl:
+          type: string
+          format: uri
+        releaseDate:
+          type: string
+          format: date
+
+    AlbumResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        artist:
+          $ref: '#/components/schemas/ArtistResponse'
+        coverUrl:
+          type: string
+        releaseDate:
+          type: string
+          format: date
+        totalStreams:
+          type: integer
+          format: int64
+
+    AlbumPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AlbumResponse'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    SongCreateRequest:
+      type: object
+      required: [title, artistId, coverUrl, audioUrl, duration]
+      properties:
+        title:
+          type: string
+        artistId:
+          type: string
+          format: uuid
+        albumId:
+          type: string
+          format: uuid
+        coverUrl:
+          type: string
+          format: uri
+        audioUrl:
+          type: string
+          format: uri
+        duration:
+          type: integer
+          description: Duration in seconds
+        lyrics:
+          type: string
+        genreIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    SongUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        coverUrl:
+          type: string
+          format: uri
+        audioUrl:
+          type: string
+          format: uri
+        lyrics:
+          type: string
+        genreIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    SongResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        artist:
+          $ref: '#/components/schemas/ArtistResponse'
+        album:
+          $ref: '#/components/schemas/AlbumResponse'
+        coverUrl:
+          type: string
+        audioUrl:
+          type: string
+        duration:
+          type: integer
+        lyrics:
+          type: string
+        playCount:
+          type: integer
+          format: int64
+        likesCount:
+          type: integer
+          format: int64
+        genres:
+          type: array
+          items:
+            $ref: '#/components/schemas/GenreResponse'
+
+    SongPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/SongResponse'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
