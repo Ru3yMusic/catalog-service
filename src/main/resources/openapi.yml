@@ -557,7 +557,6 @@ components:
           type: string
         photoUrl:
           type: string
-          format: uri
         bio:
           type: string
         isTop:
@@ -611,7 +610,6 @@ components:
           format: uuid
         coverUrl:
           type: string
-          format: uri
         releaseDate:
           type: string
           format: date
@@ -665,10 +663,8 @@ components:
           format: uuid
         coverUrl:
           type: string
-          format: uri
         audioUrl:
           type: string
-          format: uri
         duration:
           type: integer
           description: Duration in seconds
@@ -687,10 +683,8 @@ components:
           type: string
         coverUrl:
           type: string
-          format: uri
         audioUrl:
           type: string
-          format: uri
         lyrics:
           type: string
         genreIds:
