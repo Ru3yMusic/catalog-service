@@ -3,6 +3,7 @@ package com.rubymusic.catalog.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -33,6 +34,10 @@ public class Genre {
     /** Hex color for gradient end */
     @Column(name = "gradient_end", nullable = false, length = 7)
     private String gradientEnd;
+
+    /** Computed at query time — number of songs tagged with this genre */
+    @Formula("(SELECT COUNT(*) FROM song_genres sg WHERE sg.genre_id = id)")
+    private Integer songCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

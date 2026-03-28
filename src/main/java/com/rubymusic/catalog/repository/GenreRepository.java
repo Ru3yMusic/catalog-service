@@ -13,4 +13,7 @@ public interface GenreRepository extends JpaRepository<Genre, UUID> {
     Optional<Genre> findByNameIgnoreCase(String name);
 
     boolean existsByNameIgnoreCase(String name);
+
+    /** Admin search by name — partial, case-insensitive */
+    List<Genre> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
 }

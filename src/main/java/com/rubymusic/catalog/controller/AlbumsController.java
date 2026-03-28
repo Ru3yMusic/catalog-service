@@ -26,8 +26,8 @@ public class AlbumsController implements AlbumsApi {
     private final SongMapper songMapper;
 
     @Override
-    public ResponseEntity<AlbumPage> listAlbums(Integer page, Integer size) {
-        var p = albumService.findAll(PageRequest.of(page, size));
+    public ResponseEntity<AlbumPage> listAlbums(UUID artistId, Integer page, Integer size) {
+        var p = albumService.findAll(artistId, PageRequest.of(page, size));
         return ResponseEntity.ok(toPage(p));
     }
 
@@ -35,7 +35,7 @@ public class AlbumsController implements AlbumsApi {
     public ResponseEntity<AlbumResponse> createAlbum(AlbumRequest body) {
         AlbumResponse dto = albumMapper.toDto(
                 albumService.create(body.getTitle(), body.getArtistId(),
-                        body.getCoverUrl(), body.getReleaseDate()));
+                        body.getCoverUrl(), body.getReleaseDate(), body.getStationId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -52,6 +52,12 @@ public class AlbumsController implements AlbumsApi {
     }
 
     @Override
+    public ResponseEntity<AlbumPage> searchAlbums(String q, Integer page, Integer size) {
+        var p = albumService.search(q, PageRequest.of(page, size));
+        return ResponseEntity.ok(toPage(p));
+    }
+
+    @Override
     public ResponseEntity<AlbumResponse> getAlbumById(UUID id) {
         return ResponseEntity.ok(albumMapper.toDto(albumService.findById(id)));
     }
@@ -59,7 +65,7 @@ public class AlbumsController implements AlbumsApi {
     @Override
     public ResponseEntity<AlbumResponse> updateAlbum(UUID id, AlbumRequest body) {
         AlbumResponse dto = albumMapper.toDto(
-                albumService.update(id, body.getTitle(), body.getCoverUrl(), body.getReleaseDate()));
+                albumService.update(id, body.getTitle(), body.getCoverUrl(), body.getReleaseDate(), body.getStationId()));
         return ResponseEntity.ok(dto);
     }
 

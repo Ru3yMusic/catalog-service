@@ -21,6 +21,9 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
     /** Top albums — ordered by total streams descending */
     Page<Album> findAllByOrderByTotalStreamsDesc(Pageable pageable);
 
+    /** Search by title (case-insensitive), newest first */
+    Page<Album> findByTitleContainingIgnoreCaseOrderByReleaseDateDesc(String title, Pageable pageable);
+
     @Modifying
     @Query("UPDATE Album a SET a.totalStreams = a.totalStreams + 1 WHERE a.id = :id")
     void incrementTotalStreams(UUID id);

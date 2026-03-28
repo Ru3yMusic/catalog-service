@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +29,11 @@ public class SongServiceImpl implements SongService {
     private final ArtistRepository artistRepository;
     private final AlbumRepository albumRepository;
     private final GenreRepository genreRepository;
+
+    @Override
+    public Page<Song> findAll(Pageable pageable) {
+        return songRepository.findAll(pageable);
+    }
 
     @Override
     public Song findById(UUID id) {
@@ -51,8 +57,25 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
+    public Page<Song> findByStationId(UUID stationId, Pageable pageable) {
+        return songRepository.findByStationId(stationId, pageable);
+    }
+
+    @Override
     public Page<Song> search(String query, Pageable pageable) {
         return songRepository.search(query, pageable);
+    }
+
+    @Override
+    public Page<Song> findRecommendations(List<UUID> referenceSongIds, Pageable pageable) {
+        if (referenceSongIds == null || referenceSongIds.isEmpty()) {
+            return org.springframework.data.domain.Page.empty(pageable);
+        }
+        List<UUID> genreIds = songRepository.findGenreIdsBySongIds(referenceSongIds);
+        if (genreIds.isEmpty()) {
+            return org.springframework.data.domain.Page.empty(pageable);
+        }
+        return songRepository.findRecommendations(genreIds, referenceSongIds, pageable);
     }
 
     @Override
@@ -101,6 +124,7 @@ public class SongServiceImpl implements SongService {
     @Override
     @Transactional
     public void delete(UUID id) {
+        songRepository.removeFromAllStations(id);
         songRepository.deleteById(id);
     }
 

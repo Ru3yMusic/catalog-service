@@ -2,6 +2,7 @@ package com.rubymusic.catalog.service.impl;
 
 import com.rubymusic.catalog.model.Artist;
 import com.rubymusic.catalog.repository.ArtistRepository;
+import com.rubymusic.catalog.repository.SongRepository;
 import com.rubymusic.catalog.service.ArtistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,9 +19,13 @@ import java.util.UUID;
 public class ArtistServiceImpl implements ArtistService {
 
     private final ArtistRepository artistRepository;
+    private final SongRepository songRepository;
 
     @Override
-    public Page<Artist> findAll(Pageable pageable) {
+    public Page<Artist> findAll(Boolean isTop, Pageable pageable) {
+        if (Boolean.TRUE.equals(isTop)) {
+            return artistRepository.findByIsTopTrue(pageable);
+        }
         return artistRepository.findAll(pageable);
     }
 
@@ -42,11 +47,12 @@ public class ArtistServiceImpl implements ArtistService {
 
     @Override
     @Transactional
-    public Artist create(String name, String photoUrl, String bio) {
+    public Artist create(String name, String photoUrl, String bio, Boolean isTop) {
         Artist artist = Artist.builder()
                 .name(name)
                 .photoUrl(photoUrl)
                 .bio(bio)
+                .isTop(Boolean.TRUE.equals(isTop))
                 .build();
         return artistRepository.save(artist);
     }
@@ -65,6 +71,7 @@ public class ArtistServiceImpl implements ArtistService {
     @Override
     @Transactional
     public void delete(UUID id) {
+        songRepository.removeArtistSongsFromAllStations(id);
         artistRepository.deleteById(id);
     }
 

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,8 +24,20 @@ public class SongsController implements SongsApi {
     private final SongMapper songMapper;
 
     @Override
+    public ResponseEntity<SongPage> listSongs(Integer page, Integer size) {
+        var p = songService.findAll(PageRequest.of(page, size));
+        return ResponseEntity.ok(toPage(p));
+    }
+
+    @Override
     public ResponseEntity<SongPage> searchSongs(String q, Integer page, Integer size) {
         var p = songService.search(q, PageRequest.of(page, size));
+        return ResponseEntity.ok(toPage(p));
+    }
+
+    @Override
+    public ResponseEntity<SongPage> getRecommendations(List<UUID> songIds, Integer page, Integer size) {
+        var p = songService.findRecommendations(songIds, PageRequest.of(page, size));
         return ResponseEntity.ok(toPage(p));
     }
 

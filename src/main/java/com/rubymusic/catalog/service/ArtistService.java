@@ -9,7 +9,8 @@ import java.util.UUID;
 
 public interface ArtistService {
 
-    Page<Artist> findAll(Pageable pageable);
+    /** @param isTop when true, returns only top artists; null = all */
+    Page<Artist> findAll(Boolean isTop, Pageable pageable);
 
     Artist findById(UUID id);
 
@@ -17,7 +18,7 @@ public interface ArtistService {
 
     Page<Artist> search(String query, Pageable pageable);
 
-    Artist create(String name, String photoUrl, String bio);
+    Artist create(String name, String photoUrl, String bio, Boolean isTop);
 
     Artist update(UUID id, String name, String photoUrl, String bio, Boolean isTop);
 

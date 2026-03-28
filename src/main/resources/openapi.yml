@@ -2,7 +2,9 @@ openapi: 3.0.3
 info:
   title: Catalog Service API
   description: |
-    Manages the RUBY MUSIC catalog: genres (stations), artists, albums and songs.
+    Manages the RUBY MUSIC catalog: genres, stations, artists, albums and songs.
+    Stations and Genres are distinct concepts: a Genre is a musical tag on songs;
+    a Station is a themed listening room that aggregates songs from one or more genres.
     All write operations require admin privileges (enforced at gateway level).
   version: 1.0.0
 
@@ -17,6 +19,7 @@ security:
 
 tags:
   - name: Genres
+  - name: Stations
   - name: Artists
   - name: Albums
   - name: Songs
@@ -29,7 +32,14 @@ paths:
     get:
       tags: [Genres]
       operationId: listGenres
-      summary: List all genres / stations
+      summary: List all genres (optionally filtered by name — admin search bar)
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter by name (partial match, case-insensitive)
       responses:
         '200':
           description: List of genres
@@ -104,14 +114,160 @@ paths:
         '204':
           description: Deleted
 
+  # ── Stations ─────────────────────────────────────────────────────────────────
+  # A Station is a themed listening room (e.g. "Rock", "Salsa").
+  # It aggregates songs via its linked Genres. StationId is the room key used
+  # in WebSocket presence (station:{id}) and play history.
+
+  /api/v1/catalog/stations/active:
+    get:
+      tags: [Stations]
+      operationId: listActiveStations
+      summary: List all active stations (Home screen + onboarding picker)
+      responses:
+        '200':
+          description: List of active stations ordered by name
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StationResponse'
+
+  /api/v1/catalog/stations:
+    get:
+      tags: [Stations]
+      operationId: listStations
+      summary: List stations paginated (admin)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of stations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationPage'
+    post:
+      tags: [Stations]
+      operationId: createStation
+      summary: Create a station (admin)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StationRequest'
+      responses:
+        '201':
+          description: Station created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationResponse'
+        '409':
+          description: Station name already exists
+
+  /api/v1/catalog/stations/search:
+    get:
+      tags: [Stations]
+      operationId: searchStations
+      summary: Search active stations by name
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationPage'
+
+  /api/v1/catalog/stations/{id}:
+    get:
+      tags: [Stations]
+      operationId: getStationById
+      summary: Get station by ID
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Station found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationResponse'
+        '404':
+          description: Not found
+    put:
+      tags: [Stations]
+      operationId: updateStation
+      summary: Update station (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StationRequest'
+      responses:
+        '200':
+          description: Station updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StationResponse'
+    delete:
+      tags: [Stations]
+      operationId: deleteStation
+      summary: Delete station (admin)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '204':
+          description: Deleted
+
+  /api/v1/catalog/stations/{id}/songs:
+    get:
+      tags: [Stations, Songs]
+      operationId: getSongsByStation
+      summary: Songs directly assigned to a station (paginated)
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of songs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
+        '404':
+          description: Station not found
+
   # ── Artists ──────────────────────────────────────────────────────────────────
 
   /api/v1/catalog/artists:
     get:
       tags: [Artists]
       operationId: listArtists
-      summary: List artists (paginated)
+      summary: List artists (paginated, optional isTop filter for admin "Solo destacados")
       parameters:
+        - name: isTop
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: When true, returns only top/featured artists
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
       responses:
@@ -260,8 +416,15 @@ paths:
     get:
       tags: [Albums]
       operationId: listAlbums
-      summary: List albums (paginated)
+      summary: List albums (paginated, optional artistId filter for admin dropdown)
       parameters:
+        - name: artistId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+          description: Filter albums by artist (admin filter dropdown)
         - $ref: '#/components/parameters/PageParam'
         - $ref: '#/components/parameters/SizeParam'
       responses:
@@ -288,6 +451,27 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AlbumResponse'
+
+  /api/v1/catalog/albums/search:
+    get:
+      tags: [Albums]
+      operationId: searchAlbums
+      summary: Search albums by title
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AlbumPage'
 
   /api/v1/catalog/albums/new-releases:
     get:
@@ -385,6 +569,30 @@ paths:
 
   # ── Songs ────────────────────────────────────────────────────────────────────
 
+  /api/v1/catalog/songs/recommendations:
+    get:
+      tags: [Songs]
+      operationId: getRecommendations
+      summary: Get song recommendations based on a set of reference songs (for "Canciones recomendadas" in playlist detail)
+      parameters:
+        - name: songIds
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Recommended songs by genre overlap, excluding the input songs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
+
   /api/v1/catalog/songs/search:
     get:
       tags: [Songs]
@@ -452,6 +660,20 @@ paths:
           description: Deleted
 
   /api/v1/catalog/songs:
+    get:
+      tags: [Songs]
+      operationId: listSongs
+      summary: List all songs paginated (admin Canciones panel)
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Page of songs
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongPage'
     post:
       tags: [Songs]
       operationId: createSong
@@ -474,7 +696,7 @@ paths:
     get:
       tags: [Genres, Songs]
       operationId: getSongsByGenre
-      summary: Songs in a genre / station (paginated)
+      summary: Songs tagged with a given genre (paginated)
       parameters:
         - $ref: '#/components/parameters/IdParam'
         - $ref: '#/components/parameters/PageParam'
@@ -545,9 +767,84 @@ components:
           type: string
         gradientEnd:
           type: string
+        songCount:
+          type: integer
+          description: Number of songs tagged with this genre (computed)
         createdAt:
           type: string
           format: date-time
+
+    StationRequest:
+      type: object
+      required: [name, genreId, gradientStart, gradientEnd, songIds]
+      properties:
+        name:
+          type: string
+          maxLength: 100
+        genreId:
+          type: string
+          format: uuid
+          description: Single genre that categorizes this station (shown in detail view)
+        gradientStart:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        gradientEnd:
+          type: string
+          pattern: '^#[0-9A-Fa-f]{6}$'
+        isActive:
+          type: boolean
+        songIds:
+          type: array
+          minItems: 3
+          items:
+            type: string
+            format: uuid
+          description: Songs directly assigned to this station (minimum 3 required)
+
+    StationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        genreId:
+          type: string
+          format: uuid
+        genreName:
+          type: string
+        gradientStart:
+          type: string
+        gradientEnd:
+          type: string
+        songCount:
+          type: integer
+          description: Number of songs directly assigned to this station
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    StationPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/StationResponse'
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+        page:
+          type: integer
+        size:
+          type: integer
 
     ArtistRequest:
       type: object
@@ -582,6 +879,10 @@ components:
           format: int64
         isTop:
           type: boolean
+        createdAt:
+          type: string
+          format: date-time
+          description: Registration date shown in admin artist detail
 
     ArtistPage:
       type: object
@@ -613,6 +914,10 @@ components:
         releaseDate:
           type: string
           format: date
+        stationId:
+          type: string
+          format: uuid
+          description: Optional station this album belongs to (drives "Escucha en [station]" in album detail)
 
     AlbumResponse:
       type: object
@@ -632,6 +937,16 @@ components:
         totalStreams:
           type: integer
           format: int64
+        songCount:
+          type: integer
+          description: Number of songs in this album (computed)
+        stationId:
+          type: string
+          format: uuid
+          description: Station this album belongs to (null if not assigned)
+        stationName:
+          type: string
+          description: Display name of the station (null if not assigned)
 
     AlbumPage:
       type: object

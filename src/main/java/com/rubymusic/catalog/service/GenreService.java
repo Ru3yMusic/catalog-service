@@ -7,7 +7,8 @@ import java.util.UUID;
 
 public interface GenreService {
 
-    List<Genre> findAll();
+    /** Returns all genres, optionally filtered by name (admin search bar) */
+    List<Genre> findAll(String q);
 
     Genre findById(UUID id);
 

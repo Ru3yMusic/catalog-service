@@ -26,8 +26,8 @@ public class GenresController implements GenresApi {
     private final SongMapper songMapper;
 
     @Override
-    public ResponseEntity<List<GenreResponse>> listGenres() {
-        return ResponseEntity.ok(genreMapper.toDtoList(genreService.findAll()));
+    public ResponseEntity<List<GenreResponse>> listGenres(String q) {
+        return ResponseEntity.ok(genreMapper.toDtoList(genreService.findAll(q)));
     }
 
     @Override

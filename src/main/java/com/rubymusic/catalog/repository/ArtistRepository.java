@@ -16,6 +16,8 @@ public interface ArtistRepository extends JpaRepository<Artist, UUID> {
 
     List<Artist> findByIsTopTrueOrderByMonthlyListenersDesc();
 
+    Page<Artist> findByIsTopTrue(Pageable pageable);
+
     Page<Artist> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     @Modifying

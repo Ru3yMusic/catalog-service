@@ -3,6 +3,7 @@ package com.rubymusic.catalog.model;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
@@ -42,10 +43,23 @@ public class Album {
     @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
 
+    /**
+     * Optional station this album belongs to. Drives the "Escucha en [station]"
+     * and "Navegar a la estación" actions in the album detail view.
+     * Plain cross-service reference within catalog-service DB.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "station_id")
+    private Station station;
+
     /** Incremented via Kafka events — eventual consistency is acceptable */
     @Column(name = "total_streams", nullable = false)
     @Builder.Default
     private Long totalStreams = 0L;
+
+    /** Computed: number of songs in this album (not stored — SQL subquery) */
+    @Formula("(SELECT COUNT(*) FROM songs s WHERE s.album_id = id)")
+    private Integer songCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

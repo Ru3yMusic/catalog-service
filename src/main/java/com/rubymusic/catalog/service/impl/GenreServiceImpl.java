@@ -2,6 +2,7 @@ package com.rubymusic.catalog.service.impl;
 
 import com.rubymusic.catalog.model.Genre;
 import com.rubymusic.catalog.repository.GenreRepository;
+import com.rubymusic.catalog.repository.StationRepository;
 import com.rubymusic.catalog.service.GenreService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,9 +17,13 @@ import java.util.UUID;
 public class GenreServiceImpl implements GenreService {
 
     private final GenreRepository genreRepository;
+    private final StationRepository stationRepository;
 
     @Override
-    public List<Genre> findAll() {
+    public List<Genre> findAll(String q) {
+        if (q != null && !q.isBlank()) {
+            return genreRepository.findByNameContainingIgnoreCaseOrderByNameAsc(q);
+        }
         return genreRepository.findAll();
     }
 
@@ -55,6 +60,9 @@ public class GenreServiceImpl implements GenreService {
     @Override
     @Transactional
     public void delete(UUID id) {
+        if (stationRepository.existsByGenreId(id)) {
+            throw new IllegalArgumentException("Cannot delete genre: it is assigned to one or more stations");
+        }
         genreRepository.deleteById(id);
     }
 }

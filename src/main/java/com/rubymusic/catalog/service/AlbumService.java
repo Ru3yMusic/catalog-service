@@ -9,7 +9,8 @@ import java.util.UUID;
 
 public interface AlbumService {
 
-    Page<Album> findAll(Pageable pageable);
+    /** @param artistId when non-null, filters by artist */
+    Page<Album> findAll(UUID artistId, Pageable pageable);
 
     Album findById(UUID id);
 
@@ -19,9 +20,11 @@ public interface AlbumService {
 
     Page<Album> findTopByStreams(Pageable pageable);
 
-    Album create(String title, UUID artistId, String coverUrl, LocalDate releaseDate);
+    Page<Album> search(String query, Pageable pageable);
 
-    Album update(UUID id, String title, String coverUrl, LocalDate releaseDate);
+    Album create(String title, UUID artistId, String coverUrl, LocalDate releaseDate, UUID stationId);
+
+    Album update(UUID id, String title, String coverUrl, LocalDate releaseDate, UUID stationId);
 
     void delete(UUID id);
 }

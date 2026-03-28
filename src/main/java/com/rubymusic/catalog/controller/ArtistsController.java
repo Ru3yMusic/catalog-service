@@ -32,8 +32,8 @@ public class ArtistsController implements ArtistsApi {
     private final SongMapper songMapper;
 
     @Override
-    public ResponseEntity<ArtistPage> listArtists(Integer page, Integer size) {
-        var p = artistService.findAll(PageRequest.of(page, size));
+    public ResponseEntity<ArtistPage> listArtists(Boolean isTop, Integer page, Integer size) {
+        var p = artistService.findAll(isTop, PageRequest.of(page, size));
         ArtistPage dto = new ArtistPage()
                 .content(artistMapper.toDtoList(p.getContent()))
                 .totalElements((int) p.getTotalElements())
@@ -46,7 +46,7 @@ public class ArtistsController implements ArtistsApi {
     @Override
     public ResponseEntity<ArtistResponse> createArtist(ArtistRequest body) {
         ArtistResponse dto = artistMapper.toDto(
-                artistService.create(body.getName(), body.getPhotoUrl(), body.getBio()));
+                artistService.create(body.getName(), body.getPhotoUrl(), body.getBio(), body.getIsTop()));
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
