@@ -36,6 +36,11 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
+    public List<Song> findRecent() {
+        return songRepository.findTop10ByOrderByCreatedAtDesc();
+    }
+
+    @Override
     public Song findById(UUID id) {
         return songRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Song not found: " + id));
@@ -111,11 +116,12 @@ public class SongServiceImpl implements SongService {
     @Override
     @Transactional
     public Song update(UUID id, String title, String coverUrl,
-                       String audioUrl, String lyrics, Set<UUID> genreIds) {
+                       String audioUrl, Integer duration, String lyrics, Set<UUID> genreIds) {
         Song song = findById(id);
         if (title != null && !title.isBlank()) song.setTitle(title);
         if (coverUrl != null) song.setCoverUrl(coverUrl);
         if (audioUrl != null) song.setAudioUrl(audioUrl);
+        if (duration != null) song.setDuration(duration);
         if (lyrics != null) song.setLyrics(lyrics);
         if (genreIds != null) song.setGenres(resolveGenres(genreIds));
         return songRepository.save(song);

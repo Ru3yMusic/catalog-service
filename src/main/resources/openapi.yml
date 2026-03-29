@@ -569,6 +569,44 @@ paths:
 
   # ── Songs ────────────────────────────────────────────────────────────────────
 
+  /api/v1/catalog/songs/recent:
+    get:
+      tags: [Songs]
+      operationId: getRecentSongs
+      summary: 10 most recently added songs — Home "Escuchar ahora" + admin dashboard
+      responses:
+        '200':
+          description: Recent songs list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SongResponse'
+
+  /api/v1/catalog/stats:
+    get:
+      tags: [Catalog]
+      operationId: getCatalogStats
+      summary: Catalog totals for admin dashboard (totalSongs, totalArtists, totalAlbums)
+      responses:
+        '200':
+          description: Catalog statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalSongs:
+                    type: integer
+                    format: int64
+                  totalArtists:
+                    type: integer
+                    format: int64
+                  totalAlbums:
+                    type: integer
+                    format: int64
+
   /api/v1/catalog/songs/recommendations:
     get:
       tags: [Songs]
@@ -1000,6 +1038,9 @@ components:
           type: string
         audioUrl:
           type: string
+        duration:
+          type: integer
+          description: Duration in seconds
         lyrics:
           type: string
         genreIds:

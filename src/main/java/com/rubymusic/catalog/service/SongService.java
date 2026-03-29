@@ -12,6 +12,9 @@ public interface SongService {
 
     Page<Song> findAll(Pageable pageable);
 
+    /** 10 most recently added songs — Home "Escuchar ahora" + admin dashboard */
+    List<Song> findRecent();
+
     Song findById(UUID id);
 
     Page<Song> findByArtistId(UUID artistId, Pageable pageable);
@@ -39,7 +42,7 @@ public interface SongService {
                 Integer duration, String lyrics, Set<UUID> genreIds);
 
     Song update(UUID id, String title, String coverUrl,
-                String audioUrl, String lyrics, Set<UUID> genreIds);
+                String audioUrl, Integer duration, String lyrics, Set<UUID> genreIds);
 
     void delete(UUID id);
 

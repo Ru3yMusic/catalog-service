@@ -93,4 +93,7 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
     @Modifying
     @Query("UPDATE Song s SET s.likesCount = GREATEST(s.likesCount - 1, 0) WHERE s.id = :id")
     void decrementLikesCount(UUID id);
+
+    /** 10 most recently added songs — used by Home "Escuchar ahora" and admin dashboard */
+    List<Song> findTop10ByOrderByCreatedAtDesc();
 }

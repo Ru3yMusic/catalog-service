@@ -5,15 +5,21 @@ import com.rubymusic.catalog.dto.SongPage;
 import com.rubymusic.catalog.dto.SongResponse;
 import com.rubymusic.catalog.dto.SongUpdateRequest;
 import com.rubymusic.catalog.mapper.SongMapper;
+import com.rubymusic.catalog.repository.AlbumRepository;
+import com.rubymusic.catalog.repository.ArtistRepository;
+import com.rubymusic.catalog.repository.SongRepository;
 import com.rubymusic.catalog.service.SongService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,6 +28,9 @@ public class SongsController implements SongsApi {
 
     private final SongService songService;
     private final SongMapper songMapper;
+    private final SongRepository songRepository;
+    private final ArtistRepository artistRepository;
+    private final AlbumRepository albumRepository;
 
     @Override
     public ResponseEntity<SongPage> listSongs(Integer page, Integer size) {
@@ -51,7 +60,7 @@ public class SongsController implements SongsApi {
         var genreIds = body.getGenreIds() != null ? new HashSet<>(body.getGenreIds()) : new HashSet<UUID>();
         SongResponse dto = songMapper.toDto(
                 songService.update(id, body.getTitle(), body.getCoverUrl(),
-                        body.getAudioUrl(), body.getLyrics(), genreIds));
+                        body.getAudioUrl(), body.getDuration(), body.getLyrics(), genreIds));
         return ResponseEntity.ok(dto);
     }
 
@@ -69,6 +78,22 @@ public class SongsController implements SongsApi {
                         body.getCoverUrl(), body.getAudioUrl(), body.getDuration(),
                         body.getLyrics(), genreIds));
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+    }
+
+    /** GET /api/v1/catalog/songs/recent — 10 most recently added songs */
+    @GetMapping("/api/v1/catalog/songs/recent")
+    public ResponseEntity<List<SongResponse>> getRecentSongs() {
+        return ResponseEntity.ok(songMapper.toDtoList(songService.findRecent()));
+    }
+
+    /** GET /api/v1/catalog/stats — totals for admin dashboard */
+    @GetMapping("/api/v1/catalog/stats")
+    public ResponseEntity<Map<String, Long>> getCatalogStats() {
+        Map<String, Long> stats = new HashMap<>();
+        stats.put("totalSongs", songRepository.count());
+        stats.put("totalArtists", artistRepository.count());
+        stats.put("totalAlbums", albumRepository.count());
+        return ResponseEntity.ok(stats);
     }
 
     private SongPage toPage(org.springframework.data.domain.Page<com.rubymusic.catalog.model.Song> p) {
