@@ -23,4 +23,4 @@ jobs:
           context: .
           push: true
           # Reemplaza 'discovery-service' por el nombre exacto de tu repo en Docker Hub
-          tags: darfelio/rbm-auth-service:latest
+          tags: darfelio/rbm-catalog-service:latest
