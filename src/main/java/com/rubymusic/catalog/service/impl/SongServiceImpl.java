@@ -47,6 +47,12 @@ public class SongServiceImpl implements SongService {
     }
 
     @Override
+    public List<Song> findByIds(List<UUID> ids) {
+        if (ids == null || ids.isEmpty()) return List.of();
+        return songRepository.findAllById(ids);
+    }
+
+    @Override
     public Page<Song> findByArtistId(UUID artistId, Pageable pageable) {
         return songRepository.findByArtistId(artistId, pageable);
     }
@@ -138,6 +144,9 @@ public class SongServiceImpl implements SongService {
     @Transactional
     public void incrementPlayCount(UUID songId) {
         songRepository.incrementPlayCount(songId);
+        // Also keep the artist's monthlyListeners counter in sync — same transaction
+        songRepository.findArtistIdBySongId(songId)
+                .ifPresent(artistRepository::incrementMonthlyListeners);
     }
 
     @Override

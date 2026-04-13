@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -96,4 +97,11 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
 
     /** 10 most recently added songs — used by Home "Escuchar ahora" and admin dashboard */
     List<Song> findTop10ByOrderByCreatedAtDesc();
+
+    /**
+     * Returns the artist ID for a given song without loading the full Song entity.
+     * Used by {@code incrementPlayCount} to update artist monthly listeners atomically.
+     */
+    @Query("SELECT s.artist.id FROM Song s WHERE s.id = :id")
+    Optional<UUID> findArtistIdBySongId(@Param("id") UUID id);
 }

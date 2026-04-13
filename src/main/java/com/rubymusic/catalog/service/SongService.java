@@ -17,6 +17,13 @@ public interface SongService {
 
     Song findById(UUID id);
 
+    /**
+     * Returns all songs matching the provided IDs.
+     * IDs with no matching song are silently skipped (returns only existing songs).
+     * Used by internal batch endpoint for cross-service data enrichment.
+     */
+    List<Song> findByIds(List<UUID> ids);
+
     Page<Song> findByArtistId(UUID artistId, Pageable pageable);
 
     Page<Song> findByAlbumId(UUID albumId, Pageable pageable);

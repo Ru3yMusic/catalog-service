@@ -23,6 +23,8 @@ tags:
   - name: Artists
   - name: Albums
   - name: Songs
+  - name: Internal
+    description: Service-to-service endpoints — require ServiceJwt (role=SERVICE)
 
 paths:
 
@@ -747,6 +749,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/SongPage'
 
+  # ── Internal (service-to-service) ─────────────────────────────────────────
+
+  /api/internal/v1/songs/{id}:
+    get:
+      tags: [Internal]
+      operationId: getInternalSongById
+      summary: Get song by ID — internal service call
+      security:
+        - ServiceJwt: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Song found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SongInternalDto'
+        '400':
+          description: Song not found or invalid ID
+
+  /api/internal/v1/songs/batch:
+    get:
+      tags: [Internal]
+      operationId: getInternalSongsBatch
+      summary: Get songs by IDs (batch) — internal service call
+      security:
+        - ServiceJwt: []
+      parameters:
+        - name: ids
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Comma-separated list of song UUIDs
+      responses:
+        '200':
+          description: Songs found (only existing IDs returned)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SongInternalDto'
+
+  /api/internal/v1/artists/{id}:
+    get:
+      tags: [Internal]
+      operationId: getInternalArtistById
+      summary: Get artist by ID — internal service call
+      security:
+        - ServiceJwt: []
+      parameters:
+        - $ref: '#/components/parameters/IdParam'
+      responses:
+        '200':
+          description: Artist found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtistInternalDto'
+        '400':
+          description: Artist not found or invalid ID
+
 # ── Components ────────────────────────────────────────────────────────────────
 
 components:
@@ -755,6 +821,11 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+    ServiceJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Service-to-service JWT signed by auth-service (RS256, role=SERVICE)
 
   parameters:
     IdParam:
@@ -1110,3 +1181,38 @@ components:
           type: string
         path:
           type: string
+
+    # ── Internal DTOs (service-to-service) ────────────────────────────────────
+
+    SongInternalDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        artistName:
+          type: string
+        coverUrl:
+          type: string
+        audioUrl:
+          type: string
+        durationMs:
+          type: integer
+          format: int64
+          description: Song duration in milliseconds
+
+    ArtistInternalDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        photoUrl:
+          type: string
+        monthlyListeners:
+          type: integer
+          format: int64

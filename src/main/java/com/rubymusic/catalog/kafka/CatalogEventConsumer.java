@@ -39,7 +39,7 @@ public class CatalogEventConsumer {
             songService.incrementPlayCount(songId);
             log.debug("play_count incremented for song {}", songId);
         } catch (Exception e) {
-            log.error("Failed to process song.played event [{}]: {}", songIdStr, e.getMessage());
+            log.error("Failed to process song.played event [{}]", songIdStr, e);
         }
     }
 
@@ -50,7 +50,7 @@ public class CatalogEventConsumer {
             songService.incrementLikesCount(songId);
             log.debug("likes_count incremented for song {}", songId);
         } catch (Exception e) {
-            log.error("Failed to process song.liked event [{}]: {}", songIdStr, e.getMessage());
+            log.error("Failed to process song.liked event [{}]", songIdStr, e);
         }
     }
 
@@ -61,7 +61,7 @@ public class CatalogEventConsumer {
             songService.decrementLikesCount(songId);
             log.debug("likes_count decremented for song {}", songId);
         } catch (Exception e) {
-            log.error("Failed to process song.unliked event [{}]: {}", songIdStr, e.getMessage());
+            log.error("Failed to process song.unliked event [{}]", songIdStr, e);
         }
     }
 
@@ -72,7 +72,7 @@ public class CatalogEventConsumer {
             artistService.incrementFollowersCount(artistId);
             log.debug("followers_count incremented for artist {}", artistId);
         } catch (Exception e) {
-            log.error("Failed to process artist.followed event [{}]: {}", artistIdStr, e.getMessage());
+            log.error("Failed to process artist.followed event [{}]", artistIdStr, e);
         }
     }
 
@@ -83,7 +83,7 @@ public class CatalogEventConsumer {
             artistService.decrementFollowersCount(artistId);
             log.debug("followers_count decremented for artist {}", artistId);
         } catch (Exception e) {
-            log.error("Failed to process artist.unfollowed event [{}]: {}", artistIdStr, e.getMessage());
+            log.error("Failed to process artist.unfollowed event [{}]", artistIdStr, e);
         }
     }
 }

@@ -8,7 +8,6 @@ COPY pom.xml .
 RUN mvn dependency:go-offline -q
 
 # Copiar el código fuente y compilar
-# El plugin openapi-generator genera DTOs e interfaces desde openapi.yml en esta fase
 COPY src ./src
 RUN mvn clean package -DskipTests -q
 

@@ -238,7 +238,6 @@ Inyectadas desde `config-server` (`config/catalog-service.yml`):
 ## Build & Run
 
 ```bash
-# Build (genera interfaces y DTOs desde openapi.yml)
 mvn clean package -DskipTests
 
 # Run
