@@ -9,30 +9,41 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface AlbumRepository extends JpaRepository<Album, UUID> {
 
-    // Override findAll to eagerly load artist — avoids LazyInitializationException
-    // when mapper accesses album.getArtist() after the transaction closes
+    // Every read method that returns Album(s) eagerly loads 'artist' AND 'station' so
+    // AlbumMapper can call album.getArtist().getName() and album.getStation().getName()
+    // safely after the transaction closes (controller layer).  Without these graphs the
+    // LAZY proxies are uninitialized by the time MapStruct runs, causing
+    // LazyInitializationException.
+
+    /** Single-album lookup — used by getAlbumById, updateAlbum, createAlbum result. */
     @Override
-    @EntityGraph(attributePaths = {"artist"})
+    @EntityGraph(attributePaths = {"artist", "station"})
+    Optional<Album> findById(UUID id);
+
+    /** Paginated list — all albums or filtered by artist. */
+    @Override
+    @EntityGraph(attributePaths = {"artist", "station"})
     Page<Album> findAll(Pageable pageable);
 
-    @EntityGraph(attributePaths = {"artist"})
+    @EntityGraph(attributePaths = {"artist", "station"})
     Page<Album> findByArtistId(UUID artistId, Pageable pageable);
 
     /** New releases — ordered by release date descending */
-    @EntityGraph(attributePaths = {"artist"})
+    @EntityGraph(attributePaths = {"artist", "station"})
     Page<Album> findAllByOrderByReleaseDateDesc(Pageable pageable);
 
     /** Top albums — ordered by total streams descending */
-    @EntityGraph(attributePaths = {"artist"})
+    @EntityGraph(attributePaths = {"artist", "station"})
     Page<Album> findAllByOrderByTotalStreamsDesc(Pageable pageable);
 
     /** Search by title (case-insensitive), newest first */
-    @EntityGraph(attributePaths = {"artist"})
+    @EntityGraph(attributePaths = {"artist", "station"})
     Page<Album> findByTitleContainingIgnoreCaseOrderByReleaseDateDesc(String title, Pageable pageable);
 
     @Modifying

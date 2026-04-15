@@ -74,6 +74,10 @@ public class SongServiceImpl implements SongService {
 
     @Override
     public Page<Song> search(String query, Pageable pageable) {
+        // Sanitize: null collapses to empty string so the repository sentinel
+        // ":query = ''" triggers and returns all songs instead of blowing up
+        // with a lower(bytea) error in PostgreSQL.
+        if (query == null) query = "";
         return songRepository.search(query, pageable);
     }
 
