@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * <p>Verifies the security contract:
  * <ul>
- *   <li>Service JWT (ROLE_SERVICE) → 200 on all internal endpoints</li>
+ *   <li>Services JWT (ROLE_SERVICE) → 200 on all internal endpoints</li>
  *   <li>User JWT (ROLE_USER)       → 403 Forbidden on internal endpoints</li>
  *   <li>No JWT                     → 401 Unauthorized on internal endpoints</li>
  * </ul>
