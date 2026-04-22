@@ -57,8 +57,8 @@ public class StationServiceImpl implements StationService {
         Genre genre = genreRepository.findById(genreId)
                 .orElseThrow(() -> new IllegalArgumentException("Genre not found: " + genreId));
         Set<Song> songs = resolveSongs(songIds);
-        if (songs.size() < 3) {
-            throw new IllegalArgumentException("A station requires at least 3 songs");
+        if (songs.size() < 2) {
+            throw new IllegalArgumentException("A station requires at least 2 songs");
         }
         Station station = Station.builder()
                 .name(name)
@@ -86,8 +86,8 @@ public class StationServiceImpl implements StationService {
         }
         if (songIds != null) {
             Set<Song> songs = resolveSongs(songIds);
-            if (songs.size() < 3) {
-                throw new IllegalArgumentException("A station requires at least 3 songs");
+            if (songs.size() < 2) {
+                throw new IllegalArgumentException("A station requires at least 2 songs");
             }
             station.setSongs(songs);
         }

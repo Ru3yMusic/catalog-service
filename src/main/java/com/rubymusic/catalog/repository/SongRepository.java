@@ -137,4 +137,12 @@ public interface SongRepository extends JpaRepository<Song, UUID> {
      */
     @Query("SELECT s.artist.id FROM Song s WHERE s.id = :id")
     Optional<UUID> findArtistIdBySongId(@Param("id") UUID id);
+
+    /**
+     * Returns the album ID for a given song without loading the full Song entity.
+     * Used by {@code incrementPlayCount} to update album total streams.
+     * Returns empty when the song is a single (no album).
+     */
+    @Query("SELECT s.album.id FROM Song s WHERE s.id = :id")
+    Optional<UUID> findAlbumIdBySongId(@Param("id") UUID id);
 }
