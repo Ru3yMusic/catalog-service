@@ -151,6 +151,9 @@ public class SongServiceImpl implements SongService {
         // Also keep the artist's monthlyListeners counter in sync — same transaction
         songRepository.findArtistIdBySongId(songId)
                 .ifPresent(artistRepository::incrementMonthlyListeners);
+        // And aggregate the play into the album's totalStreams (if song belongs to one)
+        songRepository.findAlbumIdBySongId(songId)
+                .ifPresent(albumRepository::incrementTotalStreams);
     }
 
     @Override
