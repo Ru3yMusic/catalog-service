@@ -9,6 +9,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,9 +36,9 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
     @EntityGraph(attributePaths = {"artist", "station"})
     Page<Album> findByArtistId(UUID artistId, Pageable pageable);
 
-    /** New releases — ordered by release date descending */
+    /** New releases — only released albums, newest first. Future-scheduled rows are hidden. */
     @EntityGraph(attributePaths = {"artist", "station"})
-    Page<Album> findAllByOrderByReleaseDateDesc(Pageable pageable);
+    Page<Album> findAllByReleasedTrueOrderByReleaseDateTimeDesc(Pageable pageable);
 
     /** Top albums — ordered by total streams descending */
     @EntityGraph(attributePaths = {"artist", "station"})
@@ -44,7 +46,16 @@ public interface AlbumRepository extends JpaRepository<Album, UUID> {
 
     /** Search by title (case-insensitive), newest first */
     @EntityGraph(attributePaths = {"artist", "station"})
-    Page<Album> findByTitleContainingIgnoreCaseOrderByReleaseDateDesc(String title, Pageable pageable);
+    Page<Album> findByTitleContainingIgnoreCaseOrderByReleaseDateTimeDesc(String title, Pageable pageable);
+
+    /**
+     * Scheduler poll: rows still flagged as unreleased whose moment has arrived.
+     * Caller flips {@code released} to true and emits {@code music-feed.album.released}.
+     * Eager-fetches artist + station so the publisher can build the event payload
+     * without triggering N+1 lazy loads on each album.
+     */
+    @EntityGraph(attributePaths = {"artist", "station"})
+    List<Album> findAllByReleasedFalseAndReleaseDateTimeLessThanEqual(LocalDateTime now);
 
     @Modifying
     @Query("UPDATE Album a SET a.totalStreams = a.totalStreams + 1 WHERE a.id = :id")

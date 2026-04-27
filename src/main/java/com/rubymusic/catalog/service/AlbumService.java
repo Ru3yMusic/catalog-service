@@ -4,7 +4,7 @@ import com.rubymusic.catalog.model.Album;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface AlbumService {
@@ -16,15 +16,16 @@ public interface AlbumService {
 
     Page<Album> findByArtistId(UUID artistId, Pageable pageable);
 
+    /** Public-facing: only released albums, newest first. */
     Page<Album> findNewReleases(Pageable pageable);
 
     Page<Album> findTopByStreams(Pageable pageable);
 
     Page<Album> search(String query, Pageable pageable);
 
-    Album create(String title, UUID artistId, String coverUrl, LocalDate releaseDate, UUID stationId);
+    Album create(String title, UUID artistId, String coverUrl, LocalDateTime releaseDateTime, UUID stationId);
 
-    Album update(UUID id, String title, String coverUrl, LocalDate releaseDate, UUID stationId);
+    Album update(UUID id, String title, String coverUrl, LocalDateTime releaseDateTime, UUID stationId);
 
     void delete(UUID id);
 }

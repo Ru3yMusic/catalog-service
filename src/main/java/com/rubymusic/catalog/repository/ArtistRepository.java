@@ -16,7 +16,9 @@ public interface ArtistRepository extends JpaRepository<Artist, UUID> {
 
     List<Artist> findByIsTopTrueOrderByMonthlyListenersDesc();
 
-    Page<Artist> findByIsTopTrue(Pageable pageable);
+    /** Top artists ordered newest-first by creation. The music feed in /user/music
+     *  caps at 10 most recent — older entries roll off. */
+    Page<Artist> findByIsTopTrueOrderByCreatedAtDesc(Pageable pageable);
 
     Page<Artist> findByNameContainingIgnoreCase(String name, Pageable pageable);
 

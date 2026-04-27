@@ -2,11 +2,11 @@ package com.rubymusic.catalog.model;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +15,8 @@ import java.util.UUID;
 @Entity
 @Table(name = "albums", indexes = {
         @Index(name = "idx_albums_artist_id", columnList = "artist_id"),
-        @Index(name = "idx_albums_release_date", columnList = "release_date")
+        @Index(name = "idx_albums_release_date", columnList = "release_date"),
+        @Index(name = "idx_albums_released_release_date", columnList = "released, release_date")
 })
 @Getter
 @Setter
@@ -41,7 +42,20 @@ public class Album {
     private String coverUrl;
 
     @Column(name = "release_date", nullable = false)
-    private LocalDate releaseDate;
+    private LocalDateTime releaseDateTime;
+
+    /**
+     * True once the scheduled release moment has passed. The scheduler flips this
+     * flag and emits {@code album.released} when an album becomes public. Albums
+     * with {@code released=false} are hidden from public listings (admin only).
+     *
+     * <p>{@code @ColumnDefault("true")} lets Hibernate ddl-auto=update add this
+     * column to a populated table without violating NOT NULL on existing rows.
+     */
+    @Column(name = "released", nullable = false)
+    @ColumnDefault("true")
+    @Builder.Default
+    private Boolean released = Boolean.TRUE;
 
     /**
      * Optional station this album belongs to. Drives the "Escucha en [station]"

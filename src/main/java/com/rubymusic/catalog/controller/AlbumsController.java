@@ -35,7 +35,7 @@ public class AlbumsController implements AlbumsApi {
     public ResponseEntity<AlbumResponse> createAlbum(AlbumRequest body) {
         AlbumResponse dto = albumMapper.toDto(
                 albumService.create(body.getTitle(), body.getArtistId(),
-                        body.getCoverUrl(), body.getReleaseDate(), body.getStationId()));
+                        body.getCoverUrl(), body.getReleaseDateTime(), body.getStationId()));
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -65,7 +65,7 @@ public class AlbumsController implements AlbumsApi {
     @Override
     public ResponseEntity<AlbumResponse> updateAlbum(UUID id, AlbumRequest body) {
         AlbumResponse dto = albumMapper.toDto(
-                albumService.update(id, body.getTitle(), body.getCoverUrl(), body.getReleaseDate(), body.getStationId()));
+                albumService.update(id, body.getTitle(), body.getCoverUrl(), body.getReleaseDateTime(), body.getStationId()));
         return ResponseEntity.ok(dto);
     }
 
