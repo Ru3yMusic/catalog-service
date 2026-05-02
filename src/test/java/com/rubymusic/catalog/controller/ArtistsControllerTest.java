@@ -92,7 +92,7 @@ class ArtistsControllerTest {
     @Test
     void createArtist_returns201() throws Exception {
         Artist created = mock(Artist.class);
-        when(artistService.create(eq("Drake"), eq("photo.jpg"), eq("bio"), eq(true)))
+        when(artistService.create("Drake", "photo.jpg", "bio", true))
                 .thenReturn(created);
         when(artistMapper.toDto(created)).thenReturn(new ArtistResponse());
 

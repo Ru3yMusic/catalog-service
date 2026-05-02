@@ -190,10 +190,10 @@ class AlbumServiceImplTest {
     @Test
     void create_unknownArtist_throwsIllegalArgument() {
         UUID artistId = UUID.randomUUID();
+        LocalDateTime releaseDate = LocalDateTime.now();
         when(artistRepository.findById(artistId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.create("X", artistId, null,
-                LocalDateTime.now(), null))
+        assertThatThrownBy(() -> service.create("X", artistId, null, releaseDate, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Artist not found");
     }
@@ -202,11 +202,11 @@ class AlbumServiceImplTest {
     void create_unknownStation_throwsIllegalArgument() {
         UUID artistId = UUID.randomUUID();
         UUID stationId = UUID.randomUUID();
+        LocalDateTime releaseDate = LocalDateTime.now();
         when(artistRepository.findById(artistId)).thenReturn(Optional.of(Artist.builder().build()));
         when(stationRepository.findById(stationId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.create("X", artistId, null,
-                LocalDateTime.now(), stationId))
+        assertThatThrownBy(() -> service.create("X", artistId, null, releaseDate, stationId))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Station not found");
     }

@@ -12,9 +12,9 @@ import org.springframework.kafka.core.KafkaTemplate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -61,8 +61,8 @@ class MusicFeedKafkaBridgeTest {
         when(kafkaTemplate.send(anyString(), anyString(), anyString()))
                 .thenThrow(new RuntimeException("broker down"));
 
-        // Must NOT propagate — bridge is a "best effort" notifier
-        bridge.onAlbumReleased(event);
+        // Bridge is a "best effort" notifier — failure must NOT propagate.
+        assertThatCode(() -> bridge.onAlbumReleased(event)).doesNotThrowAnyException();
     }
 
     @Test
@@ -74,8 +74,8 @@ class MusicFeedKafkaBridgeTest {
 
         bridge.onArtistTopChanged(event);
 
-        verify(kafkaTemplate).send(eq(MusicFeedTopics.ARTIST_TOP_CHANGED),
-                eq(artistId.toString()), eq("{\"top\":true}"));
+        verify(kafkaTemplate).send(MusicFeedTopics.ARTIST_TOP_CHANGED,
+                artistId.toString(), "{\"top\":true}");
     }
 
     @Test

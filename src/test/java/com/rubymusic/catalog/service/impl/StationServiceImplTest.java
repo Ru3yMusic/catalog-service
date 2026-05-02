@@ -129,9 +129,10 @@ class StationServiceImplTest {
     @Test
     void create_duplicateName_throwsIllegalArgument() {
         UUID genreId = UUID.randomUUID();
+        Set<UUID> noSongs = Set.of();
         when(stationRepository.existsByNameIgnoreCase("Rock")).thenReturn(true);
 
-        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", Set.of()))
+        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", noSongs))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Station already exists");
     }
@@ -139,10 +140,11 @@ class StationServiceImplTest {
     @Test
     void create_unknownGenre_throwsIllegalArgument() {
         UUID genreId = UUID.randomUUID();
+        Set<UUID> noSongs = Set.of();
         when(stationRepository.existsByNameIgnoreCase("Rock")).thenReturn(false);
         when(genreRepository.findById(genreId)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", Set.of()))
+        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", noSongs))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Genre not found");
     }
@@ -151,13 +153,14 @@ class StationServiceImplTest {
     void create_lessThanTwoSongs_throwsIllegalArgument() {
         UUID genreId = UUID.randomUUID();
         UUID s1 = UUID.randomUUID();
+        Set<UUID> oneSong = Set.of(s1);
         Genre genre = Genre.builder().name("Rock").build();
         when(stationRepository.existsByNameIgnoreCase("Rock")).thenReturn(false);
         when(genreRepository.findById(genreId)).thenReturn(Optional.of(genre));
-        when(songRepository.findAllById(Set.of(s1)))
+        when(songRepository.findAllById(oneSong))
                 .thenReturn(List.of(Song.builder().title("S1").build()));
 
-        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", Set.of(s1)))
+        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", oneSong))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("at least 2 songs");
     }
@@ -262,12 +265,13 @@ class StationServiceImplTest {
     void update_withLessThanTwoSongs_throwsIllegalArgument() {
         UUID id = UUID.randomUUID();
         UUID s1 = UUID.randomUUID();
+        Set<UUID> oneSong = Set.of(s1);
         Station existing = Station.builder().name("Old").build();
         when(stationRepository.findById(id)).thenReturn(Optional.of(existing));
         when(songRepository.findAllById(anyIterable()))
                 .thenReturn(List.of(Song.builder().build()));
 
-        assertThatThrownBy(() -> service.update(id, null, null, null, null, null, Set.of(s1)))
+        assertThatThrownBy(() -> service.update(id, null, null, null, null, null, oneSong))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("at least 2 songs");
     }
@@ -288,11 +292,12 @@ class StationServiceImplTest {
     @Test
     void create_emptySongSet_throwsIllegalArgument_belowMinimum() {
         UUID genreId = UUID.randomUUID();
+        Set<UUID> noSongs = Set.of();
         Genre genre = Genre.builder().name("Rock").build();
         when(stationRepository.existsByNameIgnoreCase("Rock")).thenReturn(false);
         when(genreRepository.findById(genreId)).thenReturn(Optional.of(genre));
 
-        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", Set.of()))
+        assertThatThrownBy(() -> service.create("Rock", genreId, "#000", "#FFF", noSongs))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("at least 2 songs");
 

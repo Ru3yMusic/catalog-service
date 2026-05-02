@@ -88,7 +88,7 @@ class GenresControllerTest {
     @Test
     void createGenre_returns201() throws Exception {
         Genre created = mock(Genre.class);
-        when(genreService.create(eq("Rock"), eq("#000000"), eq("#FFFFFF"))).thenReturn(created);
+        when(genreService.create("Rock", "#000000", "#FFFFFF")).thenReturn(created);
         when(genreMapper.toDto(created)).thenReturn(new GenreResponse());
 
         mockMvc.perform(post("/api/v1/catalog/genres")
